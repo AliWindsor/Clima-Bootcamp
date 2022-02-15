@@ -13,6 +13,21 @@ protocol WeatherManagerDelegate {
     func didFailWithError(_ error: Error)
 }
 
+extension WeatherManager {
+    
+    //let latLongURL =
+    
+    func fetchWeather (latitude : Double, longitude : Double){
+       // print(cityName)
+        let urlString = "\(weatherURL)&lat=\(latitude)&lon=\(longitude)"
+        //let turlString = urlString.trimmingCharacters(in: .whitespaces)
+        
+       // print (urlString)
+        performRequest(with: urlString)
+
+    }
+}
+
 struct WeatherManager {
 
     let weatherURL = "https://api.openweathermap.org/data/2.5/weather?appid=a45252af0ddc406273a8387ea96daebb&units=metric"
@@ -29,18 +44,23 @@ struct WeatherManager {
 
     }
     
+    
     func performRequest(with urlString : String) {
        
         //1. Create URL
      
         if let url = URL(string: urlString) {//DOUBLE CHECK YOUR URL IF THIS ISNT WORKING CHECK THE HTTPS:// AND NOT \\
             //print("ex")
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "ACCEPT")
         
             //2. Create URLSession
             let session = URLSession(configuration: .default)
             
             //3. Give session a task
-            let task = session.dataTask(with: url) { (data, response, error) in
+            let task = session.dataTask(with: request) { (data, response, error) in
                 if error != nil {
                     self.delegate?.didFailWithError(error!)
                     return //exit func and dont continue

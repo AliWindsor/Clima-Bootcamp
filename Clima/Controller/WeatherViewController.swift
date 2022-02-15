@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import CoreLocation
 
-class WeatherViewController: UIViewController, UITextFieldDelegate, WeatherManagerDelegate {
+class WeatherViewController: UIViewController {
 
     @IBOutlet weak var conditionImageView: UIImageView!
     @IBOutlet weak var temperatureLabel: UILabel!
@@ -18,17 +19,28 @@ class WeatherViewController: UIViewController, UITextFieldDelegate, WeatherManag
     @IBOutlet weak var searchTextField: UITextField!
     
     var weatherManager = WeatherManager()
+    let locationManager = CLLocationManager()
+  
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        weatherManager.delegate = self //IMPORTANT FOR DELEGATE TO WORK!!!
+        locationManager.delegate = self //needs to be defined first!!
+        locationManager.requestWhenInUseAuthorization()//permission request
+        locationManager.requestLocation() //one time location data.
         
-        searchTextField.delegate = self //textfield should report back to vc. notify vc on what happens. 
+        weatherManager.delegate = self //IMPORTANT FOR DELEGATE TO WORK!!!
+        searchTextField.delegate = self //textfield should report back to vc. notify vc on what happens.
+        
     }
     
-
+    @IBAction func updateLocationPressed(_ sender: UIButton) {
+        
+        locationManager.requestLocation()
+        
+    }
+    
     @IBAction func searchPressed(_ sender: UIButton) {
         buttonAction()
     }
@@ -39,6 +51,32 @@ class WeatherViewController: UIViewController, UITextFieldDelegate, WeatherManag
     
     }
     
+    func didFailWithError(_ error: Error) {
+        print(error)
+    }
+  
+}
+//MARK: - Location
+
+extension WeatherViewController : CLLocationManagerDelegate {
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        print("Got it")
+        if let location = locations.last { //gets most recent location
+            locationManager.stopUpdatingLocation() //triggers request location multiple times
+            let lat = location.coordinate.latitude
+            let lon = location.coordinate.longitude
+            weatherManager.fetchWeather(latitude: lat, longitude: lon)
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error)
+    }
+}
+
+//MARK: - Delegate
+extension WeatherViewController : WeatherManagerDelegate {
     func didWeatherUpdate (_ weatherManager : WeatherManager, weather : WeatherModel) {
         //need to change thread in order to update UI
         DispatchQueue.main.async {
@@ -48,11 +86,11 @@ class WeatherViewController: UIViewController, UITextFieldDelegate, WeatherManag
         }
        
     }
-    
-    func didFailWithError(_ error: Error) {
-        print(error)
-    }
-    
+}
+
+//MARK: - Textfield delegate
+
+extension WeatherViewController : UITextFieldDelegate {
     //triggered by textfield not us. could have multiple text fields and apply these methods to all of them.
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         //textfield should process return key in keyboard?
@@ -81,9 +119,5 @@ class WeatherViewController: UIViewController, UITextFieldDelegate, WeatherManag
             return false
         }
         
-    }
-    
-  
-    
-}
+    }}
 
