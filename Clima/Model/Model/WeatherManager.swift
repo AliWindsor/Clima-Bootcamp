@@ -29,8 +29,12 @@ extension WeatherManager {
 }
 
 struct WeatherManager {
-
-    let weatherURL = "https://api.openweathermap.org/data/2.5/weather?appid=a45252af0ddc406273a8387ea96daebb&units=metric"
+    let apiKey = "YOUR_API_KEY"
+    
+    var weatherURL : String {
+        
+        return "https://api.openweathermap.org/data/2.5/weather?appid=\(apiKey)&units=metric"
+    }
     
     var delegate: WeatherManagerDelegate?
     
